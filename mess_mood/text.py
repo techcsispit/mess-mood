@@ -13,7 +13,8 @@ def tokenize(text):
     Stopwords are dropped. A negation is joined to the word after it,
     so "not fresh" becomes "not_fresh".
     """
-    words = [w for w in text.lower().split() if w not in STOPWORDS]
+    words = [w.strip(".,!?;:\"'()[]{}") for w in text.lower().split()]
+    words = [w for w in words if w not in STOPWORDS]
     tokens = []
     negate = False
     for word in words:

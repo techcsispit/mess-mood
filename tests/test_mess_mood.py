@@ -8,6 +8,10 @@ def test_tokenize_lowercases_and_drops_stopwords():
     assert tokenize("The DOSA was crispy") == ["dosa", "crispy"]
 
 
+def test_tokenize_ignores_punctuation():
+    assert tokenize("Good, good. GOOD!") == ["good", "good", "good"]
+
+
 def test_never_is_joined_to_the_next_word():
     assert tokenize("never fresh") == ["not_fresh"]
 
