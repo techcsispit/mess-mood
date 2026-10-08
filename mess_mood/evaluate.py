@@ -9,7 +9,7 @@ def train_test_split(rows, test_size=0.2, seed=42):
     rows = rows[:]
     random.Random(seed).shuffle(rows)
     cut = int(len(rows) * (1 - test_size))
-    return rows, rows
+    return rows[:cut], rows[cut:]
 
 
 def k_fold(rows, k=5, seed=42):

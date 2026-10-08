@@ -1,6 +1,6 @@
 from mess_mood.data import load_reviews
 from mess_mood.evaluate import fit, k_fold
-from mess_mood.metrics import accuracy, confusion_matrix, f1, recall
+from mess_mood.metrics import accuracy, confusion_matrix, f1, precision, recall
 from mess_mood.text import tokenize
 
 
@@ -44,6 +44,7 @@ def test_metrics():
     y_pred = ["pos", "neg", "neg", "neg"]
     assert accuracy(y_true, y_pred) == 0.75
     assert recall(y_true, y_pred, "pos") == 0.5
+    assert precision(y_true, y_pred, "pos") == 1.0
     assert f1(1.0, 0.5) == 2 / 3
     assert confusion_matrix(y_true, y_pred, ["neg", "pos"]) == {"neg": {"neg": 2, "pos": 0}, "pos": {"neg": 1, "pos": 1}}
 
@@ -66,3 +67,19 @@ def test_model_save_and_load(tmp_path):
     test_text = "the food was not fresh but it was okay"
     assert model.predict(test_text) == loaded_model.predict(test_text)
     assert model.scores(test_text) == loaded_model.scores(test_text)
+
+
+def test_train_test_split_does_not_overlap():
+    from mess_mood.evaluate import train_test_split
+    
+    rows = [(str(i), "x") for i in range(100)]
+    train, test = train_test_split(rows, test_size=0.2)
+    
+    # We expect 80% train and 20% test
+    assert len(train) == 80
+    assert len(test) == 20
+    
+    # We expect 0 overlapping items
+    train_ids = {r[0] for r in train}
+    test_ids = {r[0] for r in test}
+    assert not train_ids.intersection(test_ids)

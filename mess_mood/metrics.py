@@ -13,7 +13,7 @@ def counts(y_true, y_pred, label):
 def precision(y_true, y_pred, label):
     """Of the reviews we labelled `label`, how many really were."""
     tp, fp, fn = counts(y_true, y_pred, label)
-    return tp / (tp + fn) if tp + fn else 0.0
+    return tp / (tp + fp) if tp + fp else 0.0
 
 
 def recall(y_true, y_pred, label):
