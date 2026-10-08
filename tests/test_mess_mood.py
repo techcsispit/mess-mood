@@ -22,6 +22,18 @@ def test_never_is_joined_to_the_next_word():
     assert tokenize("never fresh food") == ["not_fresh", "food", "not_fresh_food"]
 
 
+def test_not_is_joined_to_the_next_word():
+    assert tokenize("not fresh food") == ["not_fresh", "food", "not_fresh_food"]
+
+
+def test_no_is_joined_to_the_next_word():
+    assert tokenize("no fresh food") == ["not_fresh", "food", "not_fresh_food"]
+
+
+def test_negation_skips_stopwords_before_the_next_word():
+    assert tokenize("not very fresh food") == ["not_fresh", "food", "not_fresh_food"]
+
+
 def test_dataset():
     rows = load_reviews()
     assert len(rows) >= 100
