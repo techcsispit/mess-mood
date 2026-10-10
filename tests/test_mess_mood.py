@@ -68,6 +68,29 @@ def test_k_fold_test_sets_dont_overlap():
     assert all(not (a & b) for i, a in enumerate(tests) for b in tests[i + 1:])
 
 
+def test_k_fold_every_row_in_exactly_one_test_set():
+    from collections import Counter
+
+    for n in (23, 24, 21, 7):
+        rows = [(str(i), "x") for i in range(n)]
+        folds = list(k_fold(rows, k=5))
+        assert len(folds) == 5
+        assert Counter(r for _, test in folds for r in test) == Counter(rows)
+        for train, test in folds:
+            assert sorted(train + test) == sorted(rows)
+            assert not set(train) & set(test)
+
+
+def test_k_fold_covers_every_shipped_review():
+    from collections import Counter
+
+    rows = load_reviews()
+    folds = list(k_fold(rows, k=5))
+    assert Counter(r for _, test in folds for r in test) == Counter(rows)
+    sizes = [len(test) for _, test in folds]
+    assert max(sizes) - min(sizes) <= 1
+
+
 def test_model_save_and_load(tmp_path):
     from mess_mood.model import NaiveBayes
     
