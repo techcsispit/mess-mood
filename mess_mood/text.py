@@ -6,6 +6,10 @@ STOPWORDS = {
 
 NEGATIONS = {"not", "no", "never"}
 
+# Increment this whenever tokenization changes in a way that can alter the
+# features produced for an existing review.
+TOKENIZER_VERSION = 1
+
 
 def tokenize(text):
     """Turns a review into a list of words for the model.
