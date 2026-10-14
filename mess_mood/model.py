@@ -12,7 +12,7 @@ import json
 import math
 from collections import Counter
 
-from mess_mood.text import tokenize
+from mess_mood.text import TOKENIZER_VERSION, tokenize
 
 
 class NaiveBayes:
@@ -58,6 +58,7 @@ class NaiveBayes:
 
     def save(self, path):
         data = {
+            "tokenizer_version": TOKENIZER_VERSION,
             "label_counts": dict(self.label_counts),
             "word_counts": {label: dict(counts) for label, counts in self.word_counts.items()},
             "vocab": list(self.vocab),
@@ -70,6 +71,18 @@ class NaiveBayes:
     def load(cls, path):
         with open(path, "r") as f:
             data = json.load(f)
+
+        saved_version = data.get("tokenizer_version")
+        if saved_version is None:
+            raise ValueError(
+                "Saved model has no tokenizer version and cannot be loaded safely; "
+                "retrain and save the model with the current version."
+            )
+        if saved_version != TOKENIZER_VERSION:
+            raise ValueError(
+                f"Saved model uses tokenizer version {saved_version}, but this "
+                f"installation uses version {TOKENIZER_VERSION}; retrain the model."
+            )
         
         model = cls()
         model.label_counts = Counter(data["label_counts"])

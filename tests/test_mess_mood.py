@@ -1,3 +1,5 @@
+import json
+
 from mess_mood.data import load_reviews
 from mess_mood.evaluate import fit, k_fold
 from mess_mood.metrics import accuracy, confusion_matrix, f1, precision, recall
@@ -70,15 +72,62 @@ def test_k_fold_test_sets_dont_overlap():
 
 def test_model_save_and_load(tmp_path):
     from mess_mood.model import NaiveBayes
+    from mess_mood.text import TOKENIZER_VERSION
     
     model = fit(load_reviews())
     path = tmp_path / "model.json"
     model.save(path)
+
+    with open(path, encoding="utf-8") as f:
+        assert json.load(f)["tokenizer_version"] == TOKENIZER_VERSION
     
     loaded_model = NaiveBayes.load(path)
     test_text = "the food was not fresh but it was okay"
     assert model.predict(test_text) == loaded_model.predict(test_text)
     assert model.scores(test_text) == loaded_model.scores(test_text)
+
+
+def test_model_load_rejects_missing_tokenizer_version(tmp_path):
+    from mess_mood.model import NaiveBayes
+
+    model = fit(load_reviews())
+    path = tmp_path / "model.json"
+    model.save(path)
+
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    del data["tokenizer_version"]
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+    try:
+        NaiveBayes.load(path)
+    except ValueError as error:
+        assert "no tokenizer version" in str(error)
+    else:
+        raise AssertionError("A model without a tokenizer version was loaded")
+
+
+def test_model_load_rejects_different_tokenizer_version(tmp_path):
+    from mess_mood.model import NaiveBayes
+    from mess_mood.text import TOKENIZER_VERSION
+
+    model = fit(load_reviews())
+    path = tmp_path / "model.json"
+    model.save(path)
+
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    data["tokenizer_version"] = TOKENIZER_VERSION + 1
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+    try:
+        NaiveBayes.load(path)
+    except ValueError as error:
+        assert "retrain the model" in str(error)
+    else:
+        raise AssertionError("A model with a different tokenizer version was loaded")
 
 
 def test_train_test_split_does_not_overlap():
