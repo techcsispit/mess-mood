@@ -79,6 +79,32 @@ def test_model_fit_rejects_mismatched_inputs(texts, labels):
         NaiveBayes().fit(texts, labels)
 
 
+def test_unseen_negation_reverses_known_word_sentiment():
+    from mess_mood.model import NaiveBayes
+
+    model = NaiveBayes().fit(
+        ["delicious", "amazing", "awful", "terrible"],
+        ["positive", "positive", "negative", "negative"],
+    )
+
+    assert model.predict("not delicious") == "negative"
+    assert model.predict("not amazing") == "negative"
+    assert model.predict("not awful") == "positive"
+    assert model.predict("not terrible") == "positive"
+
+
+def test_learned_negated_word_takes_precedence_over_fallback():
+    from mess_mood.model import NaiveBayes
+
+    model = NaiveBayes().fit(
+        ["fresh", "not fresh", "stale"],
+        ["positive", "positive", "negative"],
+    )
+
+    assert "not_fresh" in model.vocab
+    assert model.predict("not fresh") == "positive"
+
+
 def test_unknown_words_are_ignored():
     assert fit(load_reviews()).predict("xyzzy qwerty") in {"positive", "negative"}
 

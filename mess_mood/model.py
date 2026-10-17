@@ -36,11 +36,28 @@ class NaiveBayes:
     def word_prob(self, word, label):
         return (self.word_counts[label][word] + 1) / (self.totals[label] + len(self.vocab))
 
+    def inference_prob(self, word, label):
+        """Probability for a token, including unseen negated words."""
+        if word in self.vocab:
+            return self.word_prob(word, label)
+
+        if word.startswith("not_"):
+            base_word = word[4:]
+            other_labels = [other for other in self.label_counts if other != label]
+            if base_word in self.vocab and other_labels:
+                return sum(self.word_prob(base_word, other) for other in other_labels) / len(other_labels)
+
+        return None
+
     def scores(self, text):
         n = sum(self.label_counts.values())
-        words = [w for w in tokenize(text) if w in self.vocab]
+        words = tokenize(text)
         return {
-            label: math.log(count / n) + sum(math.log(self.word_prob(w, label)) for w in words)
+            label: math.log(count / n) + sum(
+                math.log(probability)
+                for word in words
+                if (probability := self.inference_prob(word, label)) is not None
+            )
             for label, count in self.label_counts.items()
         }
 
