@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from mess_mood.data import load_reviews
 from mess_mood.evaluate import fit, k_fold
 from mess_mood.metrics import accuracy, confusion_matrix, f1, precision, recall
@@ -47,6 +49,34 @@ def test_obvious_reviews():
     assert model.predict("delicious and tasty") == "positive"
     assert model.predict("cold and stale") == "negative"
     assert 0.5 <= model.confidence("delicious") <= 1
+
+
+def test_model_fit_accepts_single_pass_iterables():
+    from mess_mood.model import NaiveBayes
+
+    texts = (text for text in ["bad", "good"])
+    labels = (label for label in ["negative", "positive"])
+    model = NaiveBayes().fit(texts, labels)
+
+    assert model.label_counts == {"negative": 1, "positive": 1}
+    assert model.word_counts["negative"] == {"bad": 1}
+    assert model.word_counts["positive"] == {"good": 1}
+    assert model.predict("bad") == "negative"
+    assert model.predict("good") == "positive"
+
+
+@pytest.mark.parametrize(
+    ("texts", "labels"),
+    [
+        (["bad"], ["negative", "positive"]),
+        (["bad", "good", "great"], ["negative", "positive"]),
+    ],
+)
+def test_model_fit_rejects_mismatched_inputs(texts, labels):
+    from mess_mood.model import NaiveBayes
+
+    with pytest.raises(ValueError, match="same number of items"):
+        NaiveBayes().fit(texts, labels)
 
 
 def test_unknown_words_are_ignored():
