@@ -17,6 +17,14 @@ from mess_mood.text import TOKENIZER_VERSION, tokenize
 
 class NaiveBayes:
     def fit(self, texts, labels):
+        texts = list(texts)
+        labels = list(labels)
+        if len(texts) != len(labels):
+            raise ValueError(
+                "texts and labels must contain the same number of items "
+                f"(got {len(texts)} texts and {len(labels)} labels)"
+            )
+
         self.label_counts = Counter(labels)
         self.word_counts = {label: Counter() for label in self.label_counts}
         for text, label in zip(texts, labels):
