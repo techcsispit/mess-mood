@@ -126,6 +126,16 @@ def test_k_fold_test_sets_dont_overlap():
     assert all(not (a & b) for i, a in enumerate(tests) for b in tests[i + 1:])
 
 
+def test_k_fold_tests_every_row_once_when_rows_do_not_divide_evenly():
+    rows = [(str(i), "positive") for i in range(113)]
+    folds = list(k_fold(rows, k=5))
+    tested_rows = [row for _, test in folds for row in test]
+
+    assert sorted(tested_rows) == sorted(rows)
+    assert sorted(len(test) for _, test in folds) == [22, 22, 23, 23, 23]
+    assert all(len(train) + len(test) == len(rows) for train, test in folds)
+
+
 def test_model_save_and_load(tmp_path):
     from mess_mood.model import NaiveBayes
     from mess_mood.text import TOKENIZER_VERSION

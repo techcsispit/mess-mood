@@ -16,11 +16,14 @@ def k_fold(rows, k=5, seed=42):
     """Yields (train, test) k times. Every row is in exactly one test set."""
     rows = rows[:]
     random.Random(seed).shuffle(rows)
-    fold_size = len(rows) // k
+    fold_size, remainder = divmod(len(rows), k)
+    start = 0
     for i in range(k):
-        test = rows[i * fold_size:(i + 1) * fold_size]
-        train = rows[:i * fold_size] + rows[(i + 1) * fold_size:]
+        stop = start + fold_size + (i < remainder)
+        test = rows[start:stop]
+        train = rows[:start] + rows[stop:]
         yield train, test
+        start = stop
 
 
 def fit(rows):
